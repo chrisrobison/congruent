@@ -59,7 +59,7 @@
          subtractFrom: function(v2){ this._x=this._x-v2._x; this._y=this._y-v2._y }
       },
 
-      init: function(){
+      initParticles: function(){
          cdr.canvas=document.getElementById("canvas");
          cdr.canvas.addEventListener("click", function(event) {
             cdr.explode(event.clientX, event.clientY);
@@ -117,7 +117,7 @@
          }
       }
    };
-   cdr.init();
+   cdr.initParticles();
 })();
 </script>
  </body>

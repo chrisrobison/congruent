@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+<head>
+   <title></title>
+   <style>
+      body { background-color:#000; color:#ccc; }
+   </style>
+</head>
+<body>
+<canvas id="canvas" height="100" width="100"></canvas>
+<script src="particle.js"></script>
+<script>
+
+
+var p = new Particle();
+p.init();
+p.explode(500,500,1);
+setTimeout(function() {p.explode(500,200,1);}, 0);
+
+</script>
+</body>
+</html>
