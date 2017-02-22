@@ -23,12 +23,15 @@ body { background-color:#000; padding:0; margin:0; text-align:center;}
    display:inline-block;
    border-radius:3em;
    border: 6px solid transparent;
-   transition: transform 600ms;
+   transition: transform 600ms cubic-bezier(0.705, 1.650, 0.655, 0.820);
    position:absolute;
    background-size:cover;
    background-repeat: no-repeat;
    background-position: 0 0;
    background-image: url("img/button.png");
+}
+.drop {
+   transition: all 3s cubic-bezier(0.705, 1.650, 0.655, 0.820);
 }
 .token:hover {
    filter: brightness(1.2) drop-shadow(0px 0px 20px #ffff00);
@@ -171,16 +174,21 @@ div.poof {
    font-size: 2em;
    color: #fff;
    text-align:center;
+   position:relative;
+   top:.5em;
 }
 #scoreboard label {
    margin-left: 3em; 
+}
+#scoreboard span {
+   font-size:3em;
 }
 #score {
    font-family: "Digital-7";
    color:#00ee00;
 }
 #time {
-   font-family: "Share Tech Mono", monospace;
+   font-family: "Digital-7 Mono", monospace;
    color:#00ee00;
 }
 #buttons {
@@ -194,14 +202,12 @@ left:0px;
 right:0px;
 }
 #scoreboard button {
-   border-radius: 3em;
-   height: 3em;
-   width: 3em;
-   background-color: #00cc00;
-   color: #fff;
-   font-size: 16px;
-   border: 4px outset #0f0;
-   text-transform: uppercase;
+   background-color: transparent;
+   color: #0d0;
+   font-size: 2.5em;
+   border: 0;
+   position:relative;
+   float:right;
 }
 .gameover {
    display:inline-block;
@@ -230,9 +236,27 @@ right:0px;
    border-bottom: 4px solid #333;
    margin-left:0.15em;
    background-color:#eee;
-   animation: blink 1s steps(2) infinite;
+   /* animation: blink 1s steps(2) infinite; */
    font-family: "Digital-7",monospace;
    background-color: #000;
    color:#0e0;
    text-align:center;
+}
+@media (min-width:1024px) {
+   #scoreboard label { 
+      display:inline;
+      font-size:2em;
+   }
+   #scoreboard {
+      font-size:1.2em;
+   }
+}
+@media (max-width:1024px) {
+   #scoreboard label { display: none; }
+   #scoreboard span {
+      margin-right:.5em;
+   }
+   #time { margin-right:0; }
+   #score {
+   }
 }

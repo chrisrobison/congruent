@@ -140,7 +140,7 @@ function setupAudio() {
       scaleArray[i] = { t:0.2*(i+1), p: scale[i], d:1};
       audioPops[i] = makeBuffer(adsr(0.01, 0.05, 0.05, 0.05, 0.5, wSlide(1.0, 3.0, 0.05, wSin(scale[i]))), 0.05, 0.6);
       audioBlips[i] = makeBuffer(adsr(0.01, 0.03, 0.01, 0.01, 0.5, wSlide(1.0, 3.0, 0.05, wSin(scale[i]))), 0.01, 0.6);
-      audioClicks[i] = makeBuffer(adsr(0.001, 0.001, 0.001, 0.001, 0.01, wSlide(1.0, 1.1, 0.005, wSin(scale[i]*3))), 0.03);
+      audioClicks[i] = makeBuffer(adsr(0.001, 0.001, 0.001, 0.001, 0.01, wSlide(1.0, -1, 0.005, wSin(scale[i]*4))), 0.03, 0.1);
     }
     audioScale = makeBuffer(wNotes(scaleArray), 0.2*scale.length, 0.2);
 

@@ -1,15 +1,17 @@
 (function() {
    window.cdr = {
       config: {
-         wide:15,
-         tall:10,
+         //wide:15,
+         // tall:10,
+         size: 120,
          border:0,
          colors: ["transparent","#990000", "#999900", "#009900", "#000099", "#990099", "#009999", "#999999", "#ee9900"],
          drkclr: ["#000000","#660000", "#666600", "#006600", "#000066", "#660066", "#006666", "#666666", "#996600"],
          lgtclr: ["#444445","#ff0000", "#ffff00", "#00ff00", "#0000ff", "#ff00ff", "#00ffff", "#ffffff", "#ffaa00"],
          color: function(c) { return "#" + 'e00ee00e009ee0e0ee335900990090039909099000'.substr(c * 3, 3); },
-         difficulty: 2
+         difficulty: 4
       },
+      queue: [],
       state: {
          score: 0,
          buttons: 0,
@@ -20,13 +22,17 @@
          matches: []
       },
       init: function(startTime=false) {
-         cdr.config.size = Math.floor((window.innerWidth-140)/cdr.config.wide);
+         //cdr.config.size = Math.floor((window.innerWidth-140)/cdr.config.wide);
+         cdr.config.wide = Math.floor((window.innerWidth-(cdr.config.size))/cdr.config.size);
          cdr.config.tall = Math.floor((window.innerHeight-cdr.config.size)/cdr.config.size);
          cdr.state.cols = cdr.config.wide;
          cdr.state.rows = cdr.config.tall;
+         var go = $$("gameover");
+         if (go) go.parentNode.removeChild(go);
+
          $$("scoreboard").style.height = cdr.config.size + 8 + "px";
          $$("board").style.top = cdr.config.size + 8 + "px";
-         $$("board").style.left = "70px";
+         $$("board").style.left = cdr.config.size/2 + "px";
          $$("board").style.display = "block";
          cdr.score = $$("score");
          cdr.buttons = $$("buttons");
@@ -38,10 +44,20 @@
          document.addEventListener("click", cdr.handleClick);
          cdr.newGame();
          if (startTime) {
-            cdr.started = Date.now();
-            setInterval(function() { cdr.updateTime(); }, 100);
+            cdr.startClock();
          }
       }, 
+      startClock: function() {
+         cdr.started = Date.now();
+         cdr.state.clockStarted = true;
+         cdr.state.timer = setInterval(function() { cdr.updateTime(); }, 100);
+      },
+      stopClock: function() {
+         if (cdr.state.timer) {
+            clearTimeout(cdr.state.timer);
+            cdr.state.timer = 0;
+         }
+      },
       updateTime: function() {
          var now = Date.now();
          var elapsed = now - cdr.started;
@@ -53,11 +69,11 @@
          if (secs < 10) secs = "0" + secs;
          if (mins < 10) mins = "0" + mins;
 
-         $$("time").innerHTML = `00:${mins}:${secs}.${ms}`;
+         $$("time").innerHTML = `${mins}:${secs}.${ms}`;
       },
       newGame: function() {
          cdr.state.board = cdr.genBoard();
-         cdr.fillBoard(cdr.state.board);
+         cdr.fillBoard(cdr.state.board, true);
       },
       genBoard: function() {
          for (var r=0; r<cdr.config.tall; r++) {
@@ -92,15 +108,24 @@
             
             return el;
       },
-      fillBoard: function(board) {
+      fillBoard: function(board, drop=false) {
          var g = $$("board");
          g.innerHTML = "";
+         var cnt = cdr.state.rows * cdr.state.cols;
          for (var r=0; r<cdr.config.tall; r++) {
             for (var c=0; c<cdr.config.wide; c++) {
                var el = cdr.makeGem("r"+r+"c"+c, cdr.state.board[r][c]);
+               if (drop) el.style.transform = "translateY(-"+window.innerHeight+"px)";
                if (cdr.state.board[r][c]!=0) g.appendChild(el);
+               cnt--;
+               if (drop) cdr.drop(el, cnt);
             }
          }
+      },
+      drop: function(el, cnt) {
+         setTimeout(function() {
+            el.style.transform = "translateY(0px)";
+         }, 50 * cnt);
       },
       rowcol: function(str) {
          if (str) {
@@ -120,8 +145,14 @@
          return [r, c];
       },
       handleClick: function(event) {
+         if (!cdr.state.clockStarted) {
+            cdr.startClock();
+         }
          var who = event.target;
          if (!who.id.match(/r(\d+)c(\d+)/)) {
+            console.dir(event);
+           // var [r, c] = cdr.whereClicked();
+
             cdr.clearMatches();
             return false;    
          }
@@ -130,11 +161,9 @@
          if (cdr.state.matches.length) {
             if (cdr.checkMatches(who.id)) {
                setTimeout(function() { cdr.checkCols(); }, 600);
-               setTimeout(function() { cdr.checkRows(); }, 800);
+               setTimeout(function() { cdr.checkRows(); cdr.checkCols(); }, 800);
                setTimeout(function() { cdr.fillBoard(cdr.state.board); }, 1000); 
-               if (!cdr.canMove()) {
-                  cdr.doGameEnd();
-               }
+               setTimeout(function() { if (!cdr.canMove()) { cdr.doGameEnd(); } }, 2000);
             } else {
                cdr.clearMatches();
             }
@@ -298,7 +327,9 @@
       },
       canMove: function() {
          for (var r=0; r<cdr.state.rows; r++) {
+         //for (var r in cdr.state.board) {
             for (var c=0; c<cdr.state.cols; c++) {
+            //for (var c in cdr.state.board[r]) {
                if (cdr.state.board[r][c]) {
                   if ((r < cdr.state.rows - 1) && (cdr.state.board[r+1][c]==cdr.state.board[r][c])) {
                      return true;
@@ -456,6 +487,7 @@
       doGameEnd: function() {
          playSound(audioDefeat);
          playSound(audioVictory);
+         cdr.stopClock();
          var highscore = localStorage.getItem("highscore");
          var amhigh = false;
          if (!highscore) {
@@ -468,7 +500,7 @@
          var el = document.createElement("div");
          el.id = "gameover";
          el.classList.add("gameover");
-         var str = "<h1>GAME OVER</h1>";
+         var str = "<h1>GAME OVER</h1><h2><a href='#' onclick='cdr.init(); return false;'>Play Again?</a></h2>";
          if (amhigh) {
             localStorage.setItem("highscore", highscore);
             str += "<hr><h1>NEW HIGH SCORE!!!</h1><h2 class='highscore'>"+highscore+"</h2><br>";
@@ -481,16 +513,12 @@
       }
    };
 })();
-var _$$ = {};
-function $$(str) { 
-   if (_$$[str]) return _$$[str];
-   _$$[str] = document.getElementById(str); 
-   return _$$[str];
-}
+function $$(str) { return document.getElementById(str); }
 setupAudio();
 cdr.init();
 document.addEventListener("mouseover", function(event) { 
-   if (event.target.id.match(/r\d+c\d+/)) {
-      playClick(0);
+   var m;
+   if (m = event.target.id.match(/r(\d+)c(\d+)/)) {
+      playSound(audioClicks[cdr.state.board[m[1]][m[2]]]);
    }
 });
