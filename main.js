@@ -8,7 +8,7 @@
          drkclr: ["#000000","#660000", "#666600", "#006600", "#000066", "#660066", "#006666", "#666666", "#996600"],
          lgtclr: ["#444445","#ff0000", "#ffff00", "#00ff00", "#0000ff", "#ff00ff", "#00ffff", "#ffffff", "#ffaa00"],
          color: function(c) { return "#" + 'e00ee00e009ee0e0ee335900990090039909099000'.substr(c * 3, 3); },
-         difficulty: 5
+         difficulty: 2
       },
       state: {
          score: 0,
@@ -27,6 +27,7 @@
          $$("scoreboard").style.height = cdr.config.size + 8 + "px";
          $$("board").style.top = cdr.config.size + 8 + "px";
          $$("board").style.left = "70px";
+         $$("board").style.display = "block";
          cdr.score = $$("score");
          cdr.buttons = $$("buttons");
          cdr.state.buttons = cdr.config.wide * cdr.config.tall;
@@ -470,14 +471,22 @@
          var str = "<h1>GAME OVER</h1>";
          if (amhigh) {
             localStorage.setItem("highscore", highscore);
-            str += "<hr><h1>NEW HIGH SCORE!!!</h1><h2>"+highscore+"</h2>";
+            str += "<hr><h1>NEW HIGH SCORE!!!</h1><h2 class='highscore'>"+highscore+"</h2><br>";
+            str += "<div class='initials'><input type='text' id='initial1' size='1'/><input type='text' id='initial2' size='1'/><input type='text' id='initial3' size='1'/></div>";
+
          }
          el.innerHTML = str;
          document.body.appendChild(el);
+         $$("board").style.display = "none";
       }
    };
 })();
-function $$(str) { return document.getElementById(str); }
+var _$$ = {};
+function $$(str) { 
+   if (_$$[str]) return _$$[str];
+   _$$[str] = document.getElementById(str); 
+   return _$$[str];
+}
 setupAudio();
 cdr.init();
 document.addEventListener("mouseover", function(event) { 
