@@ -151,7 +151,7 @@ function setupAudio() {
 }
 
 function playClicks(cnt, delay=60) {
-   if (cnt > audioClicks.length - 1) cnt = audioClicks.length - 1;
+   if (window.audioClicks && (cnt > audioClicks.length - 1)) cnt = audioClicks.length - 1;
    for (var i=0; i<cnt; i++) {
       playClick(i * delay);
    }
@@ -168,7 +168,7 @@ function playClick(delay=10) {
 }
 
 function playBlips(cnt, delay=60) {
-   if (cnt > audioBlips.length - 1) cnt = audioBlips.length - 1;
+   if (window.audioBlips && (cnt > audioBlips.length - 1)) cnt = audioBlips.length - 1;
    for (var i=0; i<cnt; i++) {
       playBlip(i, i * delay);
    }
@@ -179,7 +179,7 @@ function playBlip(idx, delay) {
 }
 
 function playPops(cnt, delay=60) {
-   if (cnt > audioPops.length - 1) cnt = audioPops.length - 1;
+   if (window.audioPops && (cnt > audioPops.length - 1)) cnt = audioPops.length - 1;
    for (var i=0; i<cnt; i++) {
       playPop(i, i * delay);
    }

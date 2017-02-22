@@ -42,6 +42,7 @@
          cdr.time = $$("time");
 
          document.addEventListener("click", cdr.handleClick);
+         document.addEventListener("touchstart", cdr.handleClick);
          cdr.newGame();
          if (startTime) {
             cdr.startClock();
@@ -174,7 +175,7 @@
                if (cdr.state.matches.length <= 1) {
                   cdr.clearMatches();
                } else {
-                  playBlips(cdr.state.matches.length-1);
+                  if (window.audioBlips && audioBlips.length) playBlips(cdr.state.matches.length-1);
                   cdr.highlightPoints();
                }
             }, 40);
@@ -509,7 +510,7 @@
          }
          el.innerHTML = str;
          document.body.appendChild(el);
-         $$("board").style.display = "none";
+         $$("board").style.zIndex = "1";
       }
    };
 })();
@@ -519,6 +520,8 @@ cdr.init();
 document.addEventListener("mouseover", function(event) { 
    var m;
    if (m = event.target.id.match(/r(\d+)c(\d+)/)) {
-      playSound(audioClicks[cdr.state.board[m[1]][m[2]]]);
+      if (window.audioClicks && audioClicks.length) {
+			playSound(audioClicks[cdr.state.board[m[1]][m[2]]]);
+		}
    }
 });
