@@ -1,10 +1,30 @@
 <!DOCTYPE html>
+<meta charset="utf-8">
 <html>
 <head>
    <title>Congruent Game</title>
    <link rel="stylesheet" type="text/css" href="default.css" />
 </head>
 <body>
+<script>
+  window.fbAsyncInit = function() {
+    FB.init({
+      appId      : '387540421624183',
+      xfbml      : true,
+      version    : 'v2.8'
+    });
+
+    // ADD ADDITIONAL FACEBOOK CODE HERE
+  };
+
+  (function(d, s, id){
+     var js, fjs = d.getElementsByTagName(s)[0];
+     if (d.getElementById(id)) {return;}
+     js = d.createElement(s); js.id = id;
+     js.src = "//connect.facebook.net/en_US/sdk.js";
+     fjs.parentNode.insertBefore(js, fjs);
+   }(document, 'script', 'facebook-jssdk'));
+</script>
 <div id="scoreboard">
    <label>Score:</label> <span id="score">0000000</span>
    <label>Buttons:</label> <span id="buttons">300</span>

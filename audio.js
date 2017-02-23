@@ -94,6 +94,8 @@ function makeBuffer(fn, len, vol) {
 }
 
 var audioCtx = window.AudioContext && (new AudioContext());
+audioCtx = (audioCtx) ? audioCtx : window.webkitAudioContext && (new webkitAudioContext())
+
 var audioChirp, audioBlip, audioBlips, audioPop, audioPops, audioClicks, audioClick, audioEnemyDead, audioOursDead, audioVictory, audioDefeat, audioTakeOver, audioScale;
 function setupAudio() {
     // do we have WebAudio?

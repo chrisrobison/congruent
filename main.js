@@ -23,8 +23,15 @@
       },
       init: function(startTime=false) {
          //cdr.config.size = Math.floor((window.innerWidth-140)/cdr.config.wide);
-         cdr.config.wide = Math.floor((window.innerWidth-(cdr.config.size))/cdr.config.size);
-         cdr.config.tall = Math.floor((window.innerHeight-cdr.config.size)/cdr.config.size);
+			if (window.innerWidth > window.innerHeight) {
+				cdr.config.size = Math.round(window.innerHeight / 10);
+				cdr.config.wide = Math.floor((window.innerWidth-(cdr.config.size))/cdr.config.size);
+				cdr.config.tall = Math.floor((window.innerHeight-cdr.config.size)/cdr.config.size);
+			} else {
+				cdr.config.size = Math.round(window.innerWidth / 10);
+				cdr.config.wide = Math.floor((window.innerWidth-(cdr.config.size))/cdr.config.size);
+				cdr.config.tall = Math.floor((window.innerHeight-cdr.config.size)/cdr.config.size);
+			}
          cdr.state.cols = cdr.config.wide;
          cdr.state.rows = cdr.config.tall;
          var go = $$("gameover");
