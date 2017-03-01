@@ -9,7 +9,7 @@
          drkclr: ["#000000","#660000", "#666600", "#006600", "#000066", "#660066", "#006666", "#666666", "#996600"],
          lgtclr: ["#444445","#ff0000", "#ffff00", "#00ff00", "#0000ff", "#ff00ff", "#00ffff", "#ffffff", "#ffaa00"],
          color: function(c) { return "#" + 'e00ee00e009ee0e0ee335900990090039909099000'.substr(c * 3, 3); },
-         difficulty: 4
+         difficulty: 3
       },
       queue: [],
       state: {
@@ -22,6 +22,7 @@
          matches: []
       },
       init: function(startTime=false) {
+			cdr.state.gameEnded = false;
          //cdr.config.size = Math.floor((window.innerWidth-140)/cdr.config.wide);
 			if (window.innerWidth > window.innerHeight) {
 				cdr.config.size = Math.round(window.innerHeight / 10);
@@ -42,25 +43,32 @@
          $$("board").style.left = cdr.config.size/2 + "px";
          $$("board").style.display = "block";
          cdr.score = $$("score");
+			cdr.state.score = 0;
+			cdr.updateScore(cdr.state.score);
          cdr.buttons = $$("buttons");
-         cdr.state.buttons = cdr.config.wide * cdr.config.tall;
+         // cdr.state.buttons = cdr.config.wide * cdr.config.tall;
+			cdr.state.buttons = 0;
          cdr.buttons.innerHTML = cdr.state.buttons;
 
-         cdr.time = $$("time");
 
          document.addEventListener("click", cdr.handleClick);
          document.addEventListener("touchstart", cdr.handleClick);
          cdr.newGame();
-         if (startTime) {
+			cdr.started = Date.now();
+         cdr.time = $$("time");
+			cdr.updateTime();
+         
+			if (startTime) {
             cdr.startClock();
          }
       }, 
       startClock: function() {
          cdr.started = Date.now();
          cdr.state.clockStarted = true;
-         cdr.state.timer = setInterval(function() { cdr.updateTime(); }, 100);
+         cdr.state.timer = setTimeout(function() { cdr.updateTime(); }, 100);
       },
       stopClock: function() {
+			cdr.state.clockStarted = false;
          if (cdr.state.timer) {
             clearTimeout(cdr.state.timer);
             cdr.state.timer = 0;
@@ -78,6 +86,10 @@
          if (mins < 10) mins = "0" + mins;
 
          $$("time").innerHTML = `${mins}:${secs}.${ms}`;
+
+			if (cdr.state.clockStarted) {
+				cdr.state.timer = setTimeout(function() { cdr.updateTime(); }, 100);
+			}
       },
       newGame: function() {
          cdr.state.board = cdr.genBoard();
@@ -92,7 +104,7 @@
          }
          return cdr.state.board;
       },
-      makeGem: function(id, color) {
+      makeGem: function(id, color, count) {
          var el = document.createElement("div");
             el.classList.add("token");
             el.classList.add("gem"+color);
@@ -113,7 +125,10 @@
             el.style.height = cdr.config.size - (cdr.config.border * 2) + "px";
             el.style.width = cdr.config.size - (cdr.config.border * 2) + "px";
             el.id = "r" + p[0] + "c" + p[1];
-            
+				if (count) {
+					cdr.state.buttons++;
+					cdr.buttons.innerHTML = cdr.state.buttons;
+				}
             return el;
       },
       fillBoard: function(board, drop=false) {
@@ -122,7 +137,7 @@
          var cnt = cdr.state.rows * cdr.state.cols;
          for (var r=0; r<cdr.config.tall; r++) {
             for (var c=0; c<cdr.config.wide; c++) {
-               var el = cdr.makeGem("r"+r+"c"+c, cdr.state.board[r][c]);
+               var el = cdr.makeGem("r"+r+"c"+c, cdr.state.board[r][c], drop);
                if (drop) el.style.transform = "translateY(-"+window.innerHeight+"px)";
                if (cdr.state.board[r][c]!=0) g.appendChild(el);
                cnt--;
@@ -168,10 +183,10 @@
          
          if (cdr.state.matches.length) {
             if (cdr.checkMatches(who.id)) {
-               setTimeout(function() { cdr.checkCols(); }, 600);
-               setTimeout(function() { cdr.checkRows(); cdr.checkCols(); }, 800);
-               setTimeout(function() { cdr.fillBoard(cdr.state.board); }, 1000); 
-               setTimeout(function() { if (!cdr.canMove()) { cdr.doGameEnd(); } }, 2000);
+               setTimeout(function() { cdr.checkCols(); cdr.checkRows(); }, 600);
+               setTimeout(function() { cdr.checkRows(); cdr.checkCols(); }, 1000);
+               setTimeout(function() { cdr.fillBoard(cdr.state.board); }, cdr.state.matches.length * 200); 
+               setTimeout(function() { if (!cdr.canMove()) { cdr.doGameEnd(); } }, 5000);
             } else {
                cdr.clearMatches();
             }
@@ -187,6 +202,8 @@
                }
             }, 40);
          }
+			event.preventDefault();
+			return false;
       },
       checkMatches: function(who) {
          var matched = false;
@@ -284,8 +301,9 @@
             var p = cdr.state.matches[i].match(/r(\d+)c(\d+)/);
             cdr.state.board[p[1]][p[2]] = 0;
             cdr.state.buttons--;
-            $$("buttons").innerHTML = cdr.state.buttons;
          }
+			cdr.state.buttons--;
+			cdr.buttons.innerHTML = cdr.state.buttons;
 
          playPops(cdr.state.matches.length);
          for (var i=0; i<cdr.state.matches.length; i++) {
@@ -407,17 +425,17 @@
          
          cdr.state.score += pnt;
          var scr = cdr.state.score;
-         
-         if (cdr.state.score.toString().length < 7) {
+         cdr.updateScore(scr);  
+         return pnt;
+      },
+		updateScore: function(scr) {
+			if (cdr.state.score.toString().length < 7) {
             var tmp = "0000000" + cdr.state.score;
             scr = tmp.substr(tmp.length - 7);
          }
          
          $$("score").innerHTML = scr;
-
-         return pnt;
-      },
-
+		},
       showPoints: function(who, classname='smpoint', amt, pos) {
          var [r, c] = cdr.rowcol(who);
          var el = document.createElement('span');
@@ -459,14 +477,15 @@
       },
       removePiece: function(piece, cnt) {
          var parts = cdr.rowcol(piece);
+			console.log(parts);
          setTimeout(function() {
             var [x, y] = cdr.getCoord(piece);
             var el = $$(piece);
             if (el) {
-               el.style.backgroundColor = "transparent";
+               el.classList.add("poof");
+               //el.style.backgroundColor = "none";
                el.style.zIndex = 99999;
                el.style.border = "none";
-               el.classList.add("poof");
                el.style.height="60px";
                el.style.width = "60px";
                el.style.transform = "scale(2)";
@@ -475,12 +494,11 @@
             //   el.classList.remove("token");
                setTimeout(function() {
             //      el.style.transform = "scale(3)";
-                  el.style.opacity = 0;
+               //   el.style.opacity = 0;
                    // el.parentNode.removeChild(el);
-               }, 600);
+               }, 1500);
             }
          }, 50*cnt);
-         cdr.state.board[parts[0]][parts[1]] = 0;
       },
       dumpBoard: function() {
          var out = "";
@@ -493,6 +511,8 @@
          console.log(out);
       },
       doGameEnd: function() {
+			if (cdr.state.gameEnded) return;
+			cdr.state.gameEnded = true;
          playSound(audioDefeat);
          playSound(audioVictory);
          cdr.stopClock();
@@ -531,4 +551,7 @@ document.addEventListener("mouseover", function(event) {
 			playSound(audioClicks[cdr.state.board[m[1]][m[2]]]);
 		}
    }
+});
+document.addEventListener('gesturestart', function (e) {
+    e.preventDefault();
 });

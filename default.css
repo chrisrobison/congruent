@@ -5,7 +5,7 @@
   font-family: 'Digital-7';
   font-style: normal;
   font-weight: 400;
-  src: url(Digital-7-mono.ttf) format('ttf');
+  src: url(digital-7.ttf) format('ttf');
   unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2212, U+2215;
 }
 
@@ -87,7 +87,7 @@ div.poof {
    background-color:transparent;
    width: 60px;
    height: 60px;
-   animation: play 500ms steps(7) 1;
+   animation: play 500ms steps(7) infinite;
 }
 @keyframes play {
    from { background-position:    0px; }
@@ -178,13 +178,13 @@ div.poof {
    top:.5em;
 }
 #scoreboard label {
-   margin-left: 3em; 
+   margin-left: 2em; 
 }
 #scoreboard span {
    font-size:3em;
 }
 #score {
-   font-family: "Digital-7";
+   font-family: "Digital-7 Mono";
    color:#00ee00;
 }
 #time {
@@ -192,7 +192,7 @@ div.poof {
    color:#00ee00;
 }
 #buttons {
-   font-family: "Digital-7";
+   font-family: "Digital-7 Mono";
    color:#00ee00;
 }
 #board {
@@ -220,9 +220,10 @@ right:0px;
    padding: 1em;
    font-family: "Fontdiner Swanky", sans-serif;
    z-index:99999;
+	position:relative;
 }
 .highscore {
-   font-family: "Digital-7",monospace;
+   font-family: "Digital-7 Mono",monospace;
    color:#0d0;
    background-color:#000;
    padding: .5em;
@@ -237,7 +238,7 @@ right:0px;
    margin-left:0.15em;
    background-color:#eee;
    /* animation: blink 1s steps(2) infinite; */
-   font-family: "Digital-7",monospace;
+   font-family: "Digital-7 Mono",monospace;
    background-color: #000;
    color:#0e0;
    text-align:center;
@@ -245,7 +246,7 @@ right:0px;
 @media (min-width:1024px) {
    #scoreboard label { 
       display:inline;
-      font-size:2em;
+      font-size:1.8em;
    }
    #scoreboard {
       font-size:1.2em;
@@ -257,6 +258,9 @@ right:0px;
       margin-right:.5em;
    }
    #time { margin-right:0; }
-   #score {
-   }
+   #scoreboard { font-size:1.8em; }
+	#scoreboard span#score { font-size:1em; }
+	#scoreboard span#buttons {font-size:1em; }
+	#scoreboard span#time { font-size:1em; }
 }
+@-ms-viewport{ width: device-width; }

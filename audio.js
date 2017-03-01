@@ -96,7 +96,7 @@ function makeBuffer(fn, len, vol) {
 var audioCtx = window.AudioContext && (new AudioContext());
 audioCtx = (audioCtx) ? audioCtx : window.webkitAudioContext && (new webkitAudioContext())
 
-var audioChirp, audioBlip, audioBlips, audioPop, audioPops, audioClicks, audioClick, audioEnemyDead, audioOursDead, audioVictory, audioDefeat, audioTakeOver, audioScale;
+var audioFloop, audioFloops, audioChirp, audioBlip, audioBlips, audioPop, audioPops, audioClicks, audioClick, audioEnemyDead, audioOursDead, audioVictory, audioDefeat, audioTakeOver, audioScale;
 function setupAudio() {
     // do we have WebAudio?
     if (!audioCtx)
@@ -109,6 +109,9 @@ function setupAudio() {
     ), 0.3);
     audioPop = makeBuffer(adsr(0.01, 0.05, 0.05, 0.05, 0.5,
         wSlide(1.0, 3.0, 0.05, wSin(440))
+    ), 0.05, 0.6);
+    audioFloop = makeBuffer(adsr(0.01, 0.05, 0.05, 0.05, 0.5,
+        wSlide(3.0, 0.0, 0.05, wSin(440))
     ), 0.05, 0.6);
     audioBlip = makeBuffer(adsr(0.01, 0.03, 0.01, 0.01, 0.5,
         wSlide(1.0, 3.0, 0.05, wSin(440))
@@ -137,12 +140,14 @@ function setupAudio() {
     audioPops = [];
     audioBlips = [];
     audioClicks = [];
+    audioFloops = [];
 
     for (var i=0; i<scale.length; i++) {
       scaleArray[i] = { t:0.2*(i+1), p: scale[i], d:1};
       audioPops[i] = makeBuffer(adsr(0.01, 0.05, 0.05, 0.05, 0.5, wSlide(1.0, 3.0, 0.05, wSin(scale[i]))), 0.05, 0.6);
       audioBlips[i] = makeBuffer(adsr(0.01, 0.03, 0.01, 0.01, 0.5, wSlide(1.0, 3.0, 0.05, wSin(scale[i]))), 0.01, 0.6);
-      audioClicks[i] = makeBuffer(adsr(0.001, 0.001, 0.001, 0.001, 0.01, wSlide(1.0, -1, 0.005, wSin(scale[i]*4))), 0.03, 0.1);
+      audioClicks[i] = makeBuffer(adsr(0.001, 0.001, 0.001, 0.001, 0.01, wSlide(1.0, -1, 0.005, wSin(scale[i]*2))), 0.03, 0.1);
+		audioFloops[i] = makeBuffer(adsr(0.01, 0.05, 0.05, 0.05, 0.5, wSlide(3.0, 0.0, 0.05, wSin(scale[scale.length - 1 - i]))), 0.05, 0.6);
     }
     audioScale = makeBuffer(wNotes(scaleArray), 0.2*scale.length, 0.2);
 
@@ -170,9 +175,8 @@ function playClick(delay=10) {
 }
 
 function playBlips(cnt, delay=60) {
-   if (window.audioBlips && (cnt > audioBlips.length - 1)) cnt = audioBlips.length - 1;
    for (var i=0; i<cnt; i++) {
-      playBlip(i, i * delay);
+      playBlip(i % 8, i * delay);
    }
 }
 
@@ -181,9 +185,8 @@ function playBlip(idx, delay) {
 }
 
 function playPops(cnt, delay=60) {
-   if (window.audioPops && (cnt > audioPops.length - 1)) cnt = audioPops.length - 1;
    for (var i=0; i<cnt; i++) {
-      playPop(i, i * delay);
+      playPop(i % 8, i * delay);
    }
 }
 
