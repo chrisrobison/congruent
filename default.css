@@ -82,12 +82,12 @@ div.explode {
    margin-left:8px;
    margin-top:4px;
 }
-div.poof {
+#board div.poof {
    background-image: url(img/poof.png);
    background-color:transparent;
    width: 60px;
    height: 60px;
-   animation: play 500ms steps(7) infinite;
+   animation: play 500ms steps(7) 1;
 }
 @keyframes play {
    from { background-position:    0px; }

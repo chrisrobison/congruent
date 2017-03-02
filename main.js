@@ -9,7 +9,7 @@
          drkclr: ["#000000","#660000", "#666600", "#006600", "#000066", "#660066", "#006666", "#666666", "#996600"],
          lgtclr: ["#444445","#ff0000", "#ffff00", "#00ff00", "#0000ff", "#ff00ff", "#00ffff", "#ffffff", "#ffaa00"],
          color: function(c) { return "#" + 'e00ee00e009ee0e0ee335900990090039909099000'.substr(c * 3, 3); },
-         difficulty: 3
+         difficulty: 4
       },
       queue: [],
       state: {
@@ -182,10 +182,11 @@
          var [r, c] = cdr.rowcol(who.id);
          
          if (cdr.state.matches.length) {
+				var matchedCount = cdr.state.matches.length - 1;
             if (cdr.checkMatches(who.id)) {
-               setTimeout(function() { cdr.checkCols(); cdr.checkRows(); }, 600);
-               setTimeout(function() { cdr.checkRows(); cdr.checkCols(); }, 1000);
-               setTimeout(function() { cdr.fillBoard(cdr.state.board); }, cdr.state.matches.length * 200); 
+               setTimeout(function() { cdr.checkCols(); cdr.checkRows(); }, 50 * matchedCount);
+               setTimeout(function() { cdr.checkRows(); cdr.checkCols(); }, 50 * matchedCount);
+               setTimeout(function() { cdr.fillBoard(cdr.state.board); }, 400 * matchedCount); 
                setTimeout(function() { if (!cdr.canMove()) { cdr.doGameEnd(); } }, 5000);
             } else {
                cdr.clearMatches();
@@ -302,7 +303,6 @@
             cdr.state.board[p[1]][p[2]] = 0;
             cdr.state.buttons--;
          }
-			cdr.state.buttons--;
 			cdr.buttons.innerHTML = cdr.state.buttons;
 
          playPops(cdr.state.matches.length);
@@ -473,30 +473,42 @@
       },
       getCoord: function(who) {
          var [r, c] = cdr.rowcol(who);
-         return [(r * cdr.config.size) + (cdr.config.size / 2), (c * cdr.config.size) + (cdr.config.size / 2)];
+         return [(c * cdr.config.size) + (cdr.config.size / 2), (r * cdr.config.size) + (cdr.config.size / 2)];
       },
+		explode: function(x, y, delay) {
+			var p = new Particle();
+			p.init();
+			setTimeout(function() { p.explode(x, y, 1); }, delay);
+		},
       removePiece: function(piece, cnt) {
          var parts = cdr.rowcol(piece);
 			console.log(parts);
+			var [x, y] = cdr.getCoord(piece);
+			console.log("Removing "+piece+ " x:"+x+" y:"+y);
+			// cdr.explode((x*2)+(cdr.config.size), (y*2) + (cdr.config.size), 50 * cnt);
+			var el = $$(piece);
+			el.style.height="60px";
+			el.style.width = "60px";
          setTimeout(function() {
             var [x, y] = cdr.getCoord(piece);
-            var el = $$(piece);
+            
             if (el) {
-               el.classList.add("poof");
-               //el.style.backgroundColor = "none";
+					el.classList.add("poof");
+               el.style.backgroundColor = "none";
                el.style.zIndex = 99999;
                el.style.border = "none";
                el.style.height="60px";
                el.style.width = "60px";
+               el.classList.add("poof");
                el.style.transform = "scale(2)";
 
             //   el.classList.add("remove");
             //   el.classList.remove("token");
                setTimeout(function() {
             //      el.style.transform = "scale(3)";
-               //   el.style.opacity = 0;
+                   el.style.opacity = 0;
                    // el.parentNode.removeChild(el);
-               }, 1500);
+               }, (50*cnt) + 1500);
             }
          }, 50*cnt);
       },

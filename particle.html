@@ -7,16 +7,23 @@
    </style>
 </head>
 <body>
-<canvas id="canvas" height="100" width="100"></canvas>
 <script src="particle.js"></script>
 <script>
 
 
-var p = new Particle();
-p.init();
-p.explode(500,500,1);
-setTimeout(function() {p.explode(500,200,1);}, 0);
+var p = [];
+// setTimeout(function() {p.explode(500,200,1);}, 0);
+for (var i=1; i<10; i++) {
+	explode(200 + (i * 75), 500, i * 250);
+}
 
+function explode(x, y, delay) {
+	var pa = new Particle();
+	pa.init();
+	setTimeout(function() {
+		pa.explode(x, y, 1);
+	}, delay);
+}
 </script>
 </body>
 </html>

@@ -56,7 +56,7 @@ Particle = function() {
             this.canvas.style.position = "absolute";
             this.canvas.style.top = "0px";
             this.canvas.style.left = "0px";
-            this.canvas.style.width = window.innerWidth + "px";
+            this.canvas.style.width = window.innerWidth  + "px";
             this.canvas.style.height = window.innerHeight + "px";
 
             var ccnt = document.querySelectorAll("canvas");
@@ -72,10 +72,11 @@ Particle = function() {
             this.context=this.canvas.getContext("2d");
             this.width=this.canvas.width=window.innerWidth;
             this.height=this.canvas.height=window.innerHeight;
-            this.numparticles=50;
-            this.duration=300;
-            this.radius = 2.5;
+            this.numparticles=20;
+            this.duration=250;
+            this.radius = 10;
             window.particles = [];
+
          },
          
          explode: function(x, y, color) {
@@ -88,7 +89,12 @@ Particle = function() {
             this.size = this.radius;
             this.sstep = this.radius / this.duration;
             this.colors = {red: 255, green: 255, blue: 255};
-
+				
+				setTimeout(function() { 
+					if (this.canvas && this.canvas.parentNode) {
+						this.canvas.parentNode.removeChild(this.canvas); 
+					}
+				}, this.duration);
             this.update.call(this);
          },
 
@@ -115,7 +121,11 @@ Particle = function() {
             if (ddiff < this.duration) {
                var that = this;
                requestAnimationFrame(function() { that.update.call(that); });
-            }
+            } else {
+					if (this.canvas && this.canvas.parentNode) {
+						this.canvas.parentNode.removeChild(this.canvas);
+					}
+				}
          }
       }
    };
