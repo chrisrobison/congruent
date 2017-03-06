@@ -9,10 +9,12 @@
          drkclr: ["#000000","#660000", "#666600", "#006600", "#000066", "#660066", "#006666", "#666666", "#996600"],
          lgtclr: ["#444445","#ff0000", "#ffff00", "#00ff00", "#0000ff", "#ff00ff", "#00ffff", "#ffffff", "#ffaa00"],
          color: function(c) { return "#" + 'e00ee00e009ee0e0ee335900990090039909099000'.substr(c * 3, 3); },
-         difficulty: 4
+         difficulty: 4,
+			board: { width:0, height:0 }
       },
       queue: [],
       state: {
+			level: 1,
          score: 0,
          buttons: 0,
          rows: 0,
@@ -23,19 +25,27 @@
       },
       init: function(startTime=false) {
 			cdr.state.gameEnded = false;
+			cdr.board = $$("board");
+			
+			cdr.config.board.width = window.innerWidth;
+			cdr.config.board.height = window.innerHeight;
+			
+			cdr.board.style.width = cdr.config.board.width + "px";
+			cdr.board.style.height = cdr.config.board.height + "px";
+
          //cdr.config.size = Math.floor((window.innerWidth-140)/cdr.config.wide);
-			if (window.innerWidth > window.innerHeight) {
-				cdr.config.size = Math.round(window.innerHeight / 10);
-				cdr.config.wide = Math.floor((window.innerWidth-(cdr.config.size))/cdr.config.size);
-				cdr.config.tall = Math.floor((window.innerHeight-cdr.config.size)/cdr.config.size);
-			} else {
-				cdr.config.size = Math.round(window.innerWidth / 10);
-				cdr.config.wide = Math.floor((window.innerWidth-(cdr.config.size))/cdr.config.size);
-				cdr.config.tall = Math.floor((window.innerHeight-cdr.config.size)/cdr.config.size);
-			}
-         cdr.state.cols = cdr.config.wide;
+
+			var btncnt = (cdr.state.level * 2) + 6;
+			if (btncnt>10) btncnt = 10;
+			cdr.config.size = (cdr.config.board.width > cdr.config.board.height) ? Math.round(cdr.config.board.height / btncnt) : Math.round(cdr.config.board.width / btncnt);
+			
+			cdr.config.wide = Math.floor((cdr.config.board.width - cdr.config.size) / cdr.config.size);
+			cdr.config.tall = Math.floor((cdr.config.board.height - cdr.config.size) / cdr.config.size);
+         
+			cdr.state.cols = cdr.config.wide;
          cdr.state.rows = cdr.config.tall;
-         var go = $$("gameover");
+         
+			var go = $$("gameover");
          if (go) go.parentNode.removeChild(go);
 
          $$("scoreboard").style.height = cdr.config.size + 8 + "px";
@@ -107,7 +117,7 @@
       makeGem: function(id, color, count) {
          var el = document.createElement("div");
             el.classList.add("token");
-            el.classList.add("gem"+color);
+            el.classList.add("gem"+Math.abs(color));
             if (color<0) {
                // el.style.backgroundColor = cdr.config.lgtclr[Math.abs(color)];
                // el.style.borderColor = "#fff"; // cdr.config.colors[Math.abs(cdr.state.board[r][c])];
@@ -218,41 +228,57 @@
       },
       checkRows: function() {
          for (var r=0; r<cdr.state.rows; r++) {
-            var results = cdr.checkRow(r);
+            cdr.checkRow(r);
          }
       },
       checkRow: function(r) {
          var row = cdr.getRow(r),
              rowstr = row.join(''),
-             sections = rowstr.match(/([^0]*)(0+)/y),
+             sections = rowstr.split(/(0+)/y),
              el;
-         
+			
+			var zs = 0;
+			for (var c=0; c<cdr.state.cols; c++) {
+				if (row[c]==0) {
+					zs++;
+				} else if (zs > 0) {
+				   el = $$("r"+r+"c"+c);
+					if (el) {
+						el.style.transform += ` translateX(-${cdr.config.size * zs}px`;
+						el.id = `r${r}c${c-zs}`;
+						cdr.state.board[r][c - zs] = cdr.state.board[r][c];
+						cdr.state.board[r][c] = 0;
+					}
+				}
+			}
+			/*
          if (sections) {
-            var cursor = 0;
+            var cursor = 0, zs = 0;
             for (var m=0; m<sections.length; m++) {
                var s = sections[m];
-               var zs = s.match(/(0+)/);
-               var z = zs ? zs[1].length : 0;
-               
-               var start = cursor + s.length;
-               
-               if (z) {
-                  for (c=start; c<cdr.state.cols; c++) {
-                     el = $$("r"+r+"c"+c);
-                     if (el) {
-                        el.style.transform += ` translateX(-${cdr.config.size * z}px)`;
-                        el.id = `r${r}c${c-z}`;
-                        console.log(`Updated cdr.state.board[${r}][${c-z}] with value from cdr.state.board[${r}][${c}] [${cdr.state.board[r][c]}]`);
-                        cdr.state.board[r][c-z] = cdr.state.board[r][c];
-                        cdr.state.board[r][c] = 0;
-                     }
-                  }
-               }
-               cursor = start;
-            }
-         }
+					if (s.match(/0/)) {
+						zs += s.length;
+					} else {
 
-         return [z, start];
+						var start = cursor + s.length;
+						
+						if (z) {
+							for (c=start; c<cdr.state.cols; c++) {
+								el = $$("r"+r+"c"+c);
+								if (el) {
+									el.style.transform += ` translateX(-${cdr.config.size * z}px)`;
+									el.id = `r${r}c${c-z}`;
+									console.log(`Updated cdr.state.board[${r}][${c-z}] with value from cdr.state.board[${r}][${c}] [${cdr.state.board[r][c]}]`);
+									cdr.state.board[r][c-z] = cdr.state.board[r][c];
+									cdr.state.board[r][c] = 0;
+								}
+							}
+						}
+						cursor = start;
+					}
+				}
+         }
+			*/
       },
       checkCols: function() {
          for (var c=0; c<cdr.state.cols; c++) {
