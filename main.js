@@ -5,12 +5,13 @@
          // tall:10,
          size: 120,
          border:0,
-         colors: ["transparent","#990000", "#999900", "#009900", "#000099", "#990099", "#009999", "#999999", "#ee9900"],
-         drkclr: ["#000000","#660000", "#666600", "#006600", "#000066", "#660066", "#006666", "#666666", "#996600"],
-         lgtclr: ["#444445","#ff0000", "#ffff00", "#00ff00", "#0000ff", "#ff00ff", "#00ffff", "#ffffff", "#ffaa00"],
+         colors: ["transparent","#990000", "#009900", "#000099", "#999900", "#009999", "#990099", "#999999", "#ee9900"],
+         drkclr: ["#000000","#660000", "#006600", "#000066", "#666600", "#006666", "#660066", "#666666", "#996600"],
+         lgtclr: ["#444445","#ff0000", "#00ff00", "#0000ff", "#ffff00", "#00ffff", "#ff00ff", "#ffffff", "#ffaa00"],
          color: function(c) { return "#" + 'e00ee00e009ee0e0ee335900990090039909099000'.substr(c * 3, 3); },
-         difficulty: 4,
-			board: { width:0, height:0 }
+         difficulty: 2,
+			board: { width:0, height:0 },
+			levelUps: 3
       },
       queue: [],
       state: {
@@ -30,13 +31,14 @@
 			cdr.config.board.width = window.innerWidth;
 			cdr.config.board.height = window.innerHeight;
 			
+			cdr.explode.initParticles();
 			cdr.board.style.width = cdr.config.board.width + "px";
 			cdr.board.style.height = cdr.config.board.height + "px";
 
          //cdr.config.size = Math.floor((window.innerWidth-140)/cdr.config.wide);
 
-			var btncnt = (cdr.state.level * 2) + 6;
-			if (btncnt>10) btncnt = 10;
+			var btncnt = Math.floor(cdr.state.level / cdr.config.levelUps) + 6;
+			if (btncnt>15) btncnt = 15;
 			cdr.config.size = (cdr.config.board.width > cdr.config.board.height) ? Math.round(cdr.config.board.height / btncnt) : Math.round(cdr.config.board.width / btncnt);
 			
 			cdr.config.wide = Math.floor((cdr.config.board.width - cdr.config.size) / cdr.config.size);
@@ -125,7 +127,7 @@
                // el.style.backgroundColor = cdr.config.colors[Math.abs(color)];
                // el.style.borderColor = "#000"; //cdr.config.drkclr[cdr.state.board[r][c]];
                if (color==0) {
-                  el.style.backgroundImage = "none";
+                  el.style.background = "none";
                }
             }
             el.style.borderWidth = cdr.config.border + "px";
@@ -196,8 +198,17 @@
             if (cdr.checkMatches(who.id)) {
                setTimeout(function() { cdr.checkCols(); cdr.checkRows(); }, 50 * matchedCount);
                setTimeout(function() { cdr.checkRows(); cdr.checkCols(); }, 50 * matchedCount);
-               setTimeout(function() { cdr.fillBoard(cdr.state.board); }, 400 * matchedCount); 
-               setTimeout(function() { if (!cdr.canMove()) { cdr.doGameEnd(); } }, 5000);
+               setTimeout(function() { cdr.fillBoard(cdr.state.board); }, 100 * matchedCount); 
+               setTimeout(function() { 
+						if (!cdr.canMove()) { 
+							if (cdr.state.buttons == 0) {
+								cdr.doLevelEnd();
+							} else {
+								cdr.doGameEnd(); 
+							}
+						} 
+					
+					}, 60 * matchedCount);
             } else {
                cdr.clearMatches();
             }
@@ -324,18 +335,18 @@
       },
       removeMatches: function() {
          cdr.calculatePoints();
+         playPops(cdr.state.matches.length);
          for (var i=0; i<cdr.state.matches.length; i++) {
+            cdr.removePiece(cdr.state.matches[i], i);
+         }
+          for (var i=0; i<cdr.state.matches.length; i++) {
             var p = cdr.state.matches[i].match(/r(\d+)c(\d+)/);
             cdr.state.board[p[1]][p[2]] = 0;
             cdr.state.buttons--;
          }
 			cdr.buttons.innerHTML = cdr.state.buttons;
 
-         playPops(cdr.state.matches.length);
-         for (var i=0; i<cdr.state.matches.length; i++) {
-            cdr.removePiece(cdr.state.matches[i], i);
-         }
-         //setTimeout(function() { cdr.fillBoard(cdr.state.board); },1000);
+        //setTimeout(function() { cdr.fillBoard(cdr.state.board); },1000);
          setTimeout(function() { cdr.clearPoints(); }, 2000);
 
       },
@@ -501,32 +512,35 @@
          var [r, c] = cdr.rowcol(who);
          return [(c * cdr.config.size) + (cdr.config.size / 2), (r * cdr.config.size) + (cdr.config.size / 2)];
       },
-		explode: function(x, y, delay) {
-			var p = new Particle();
-			p.init();
-			setTimeout(function() { p.explode(x, y, 1); }, delay);
-		},
-      removePiece: function(piece, cnt) {
+		removePiece: function(piece, cnt) {
          var parts = cdr.rowcol(piece);
-			console.log(parts);
+			var el = $$(piece);
 			var [x, y] = cdr.getCoord(piece);
+			var g = el.className.match(/gem(\d)/);
+			var color = "#ffffff";
+
+			if (g) {
+				 color = cdr.config.lgtclr[g[1]];
+			}
+			cdr.explode.explodeIn(x, y, color, cnt * 50);
 			console.log("Removing "+piece+ " x:"+x+" y:"+y);
 			// cdr.explode((x*2)+(cdr.config.size), (y*2) + (cdr.config.size), 50 * cnt);
-			var el = $$(piece);
-			el.style.height="60px";
-			el.style.width = "60px";
+			
+			//el.style.height="60px";
+			//el.style.width = "60px";
          setTimeout(function() {
             var [x, y] = cdr.getCoord(piece);
             
             if (el) {
-					el.classList.add("poof");
-               el.style.backgroundColor = "none";
+               el.style.background = "none";
+					/*el.classList.add("poof");
                el.style.zIndex = 99999;
                el.style.border = "none";
                el.style.height="60px";
                el.style.width = "60px";
                el.classList.add("poof");
                el.style.transform = "scale(2)";
+					*/
 
             //   el.classList.add("remove");
             //   el.classList.remove("token");
@@ -547,6 +561,24 @@
             }
          }
          console.log(out);
+      },
+      doLevelEnd: function() {
+			if (cdr.state.gameEnded) return;
+			cdr.state.gameEnded = true;
+         playSound(audioVictory);
+         cdr.stopClock();
+			var el = document.createElement("div");
+         el.id = "levelup";
+			cdr.state.level++;
+         $$("level").innerHTML = cdr.state.level;
+			cdr.config.difficulty++;
+			if (cdr.config.difficulty > (2 + cdr.config.levelUps)) cdr.config.difficulty = 2;
+         var str = "<h1>Level " + cdr.state.level + "</h1><h2>More buttons &amp; colors, right this way...</h2>";
+         el.innerHTML = str;
+         document.body.appendChild(el);
+         $$("board").style.zIndex = "1";
+			$$("levelup").style.opacity = 0; 
+			setTimeout(function() { $$("levelup").parentNode.removeChild($$("levelup")); cdr.init(); }, 3000);
       },
       doGameEnd: function() {
 			if (cdr.state.gameEnded) return;
@@ -576,7 +608,116 @@
          el.innerHTML = str;
          document.body.appendChild(el);
          $$("board").style.zIndex = "1";
-      }
+      },
+      particle: {
+         velocity :null,
+         position : null,
+
+         /// dummy constructor
+         create : function(x,y,speed,angle,color) {
+            var obj=Object.create(this);
+            obj.velocity = cdr.vector.create(0,0);
+            
+            obj.velocity.setLength(speed);
+            obj.velocity.setAngle(angle);
+            obj.position = cdr.vector.create(x,y);
+            obj.color=color;
+            return obj;
+         },
+
+         update: function(){
+            this.position.addTo(this.velocity);
+         }
+
+      },
+      vector: {
+         _x:0,
+         _y:0,
+
+         create : function(x,y){var obj= Object.create(this);obj._y=y; obj._x=x; return obj;},
+         getX : function(){ return this._x},
+         getY : function(){ return this._y},
+         setX : function(value){  this._x=value;},
+         setY : function(value){  this._y=value;},
+         getLength : function(){ return Math.sqrt(this._x*this._x + this._y*this._y)},
+         getAngle : function(){ return Math.atan2(this._y,this._x) },
+         setAngle : function(angle){ length=this.getLength(); this._y =Math.cos(angle)*length; this._x= Math.sin(angle)*length; },
+         setLength: function(length){ angle=this.getAngle(); this._y=Math.cos(angle)*length; this._x=Math.sin(angle)*length; },
+         add : function(v2){     vect = this.create(this._x+v2._x, this._y+v2._y);  return vect;    },
+         subtract : function(v2){   vect = this.create(this._x-v2._x, this._y-v2._y);  return vect;    },
+         multiply: function(value){ return vector.create(this._x*value,this._y*value)},
+         divide: function(value){ return vector.create(this._x/value,this._y/value)},
+         scale: function(value){ this._x=this._x*value; this._y=this._y*value;},
+         addTo: function(v2){ this._x=this._x+v2._x; this._y=this._y+v2._y },
+         subtractFrom: function(v2){ this._x=this._x-v2._x; this._y=this._y-v2._y }
+      },
+		explode: {
+			explodeIn: function(x, y, color, delay) {
+				setTimeout(function() {
+					cdr.explode.explode(x, y, color);
+				}, delay);
+			},
+			initParticles: function(){
+				cdr.explode.particles=[];
+				cdr.explode.domparticles=[];
+				cdr.explode.numparticles=20;
+				cdr.explode.duration=400;
+				cdr.explode.maxSpeed = 8;
+				cdr.explode.minSpeed = .5;
+			},
+			colors: function(c) {
+				return [`rgba(255, 0, 0, ${cdr.explode.alpha})`, `rgba(255, 255, 0, ${cdr.explode.alpha})`, `rgba(0, 255, 0, ${cdr.explode.alpha})`, `rgba(0, 150, 255, ${cdr.explode.alpha})`, `rgba(255, 0, 255, ${cdr.explode.alpha})`][c];
+			},
+			clearParticles: function() {
+				if (cdr.explode.domparticles.length) {
+					for (var i in cdr.explode.domparticles) {
+						var el = cdr.explode.domparticles[i];
+						if (el && el.parentNode) {
+							el.parentNode.removeChild(el);
+						}
+					}
+				}
+			},
+			explode: function(x, y, colors) {
+				var speed, container = document.getElementById('board');
+				
+				for(i=0;i<cdr.explode.numparticles;i++) {
+					speed = (Math.random() * cdr.explode.maxSpeed) + cdr.explode.minSpeed;
+					cdr.explode.particles.push(cdr.particle.create(x, y, speed, Math.random()*Math.PI*2));
+					var el = document.createElement('div');
+					el.classList.add('particle');
+					el.style.top = y+'px';
+					el.style.left = x+'px';
+					var sz = Math.round(Math.random()*25) + 5;
+					el.style.height = sz + 'px';
+					el.style.width = sz + 'px';
+					el.style.backgroundColor = colors;
+
+					container.appendChild(el);
+					cdr.explode.domparticles.push(el);
+				}
+				cdr.explode.started = Date.now();
+				cdr.explode.step = 1 / cdr.explode.duration;
+				cdr.explode.alpha = .7;
+				cdr.explode.update();
+			},
+			update: function(){
+				var ddiff = Date.now() - cdr.explode.started;
+				cdr.explode.alpha = 1 - (ddiff * cdr.explode.step);
+				for (var i = 0; i < cdr.explode.particles.length; i++) {
+					cdr.explode.particles[i].update();
+					cdr.explode.domparticles[i].style.top = cdr.explode.particles[i].position.getY() + 'px';
+					cdr.explode.domparticles[i].style.left = cdr.explode.particles[i].position.getX() + 'px';
+					// cdr.explode.domparticles[i].style.backgroundColor = cdr.explode.colors(cdr.rand(5));
+				}
+				
+				if (ddiff < cdr.explode.duration) {
+					setTimeout(cdr.explode.update, 10);
+				} else {
+					cdr.explode.clearParticles();
+				}
+			}
+		}
    };
 })();
 function $$(str) { return document.getElementById(str); }
